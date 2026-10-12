@@ -406,16 +406,16 @@
 
         .sim-slider {
             width: 100%;
-            height: 8px;
-            border-radius: 5px;
+            height: 12px;
+            border-radius: 6px;
             background: #1e293b;
             outline: none;
-            margin: 20px 0;
+            margin: 24px 0;
             accent-color: var(--accent-green);
         }
 
         .stat-badge {
-            font-size: 1.8rem;
+            font-size: 2.4rem;
             font-weight: 800;
             color: var(--accent-green);
         }
@@ -571,15 +571,15 @@
         <div class="interactive-box">
             <div class="section-header" style="margin-bottom: 30px;">
                 <h3>Sprawdź swoją wiedzę OZE & ESG</h3>
-                <p>Szybki quiz wiedzy z zakresu transformacji energetycznej</p>
+                <p>Rozwiąż mini-quiz rekrutacyjny i sprawdź, ile wiesz o transformacji energetycznej!</p>
             </div>
             
-            <div id="quizContent">
-                <p style="font-weight: 600; margin-bottom: 16px;" id="quizQuestion">1. Co oznacza skrót ESG w biznesie?</p>
-                <div class="quiz-option" onclick="selectAnswer(this, false)">A) Energy, Sustainability, and Green</div>
-                <div class="quiz-option" onclick="selectAnswer(this, true)">B) Environmental, Social, and Governance</div>
-                <div class="quiz-option" onclick="selectAnswer(this, false)">C) Ecological Standards and Growth</div>
-                <div id="quizResult" style="margin-top: 20px; font-weight: 700; color: var(--accent-green);"></div>
+            <div id="quizContainer">
+                <div id="questionCounter" style="color: var(--accent-blue); font-weight: 600; margin-bottom: 8px; font-size: 0.9rem;">Pytanie 1 z 4</div>
+                <p style="font-weight: 700; font-size: 1.1rem; margin-bottom: 20px;" id="quizQuestion">Ładowanie...</p>
+                <div id="optionsContainer"></div>
+                <div id="quizResult" style="margin-top: 20px; font-weight: 700; font-size: 1rem;"></div>
+                <button id="nextBtn" style="display: none; margin-top: 24px; background: var(--accent-green); color: #090d16; border: none; padding: 12px 28px; border-radius: 20px; font-weight: 700; cursor: pointer;" onclick="nextQuestion()">Następne pytanie ➔</button>
             </div>
         </div>
     </section>
@@ -589,20 +589,20 @@
         <div class="interactive-box">
             <div class="section-header" style="margin-bottom: 30px;">
                 <h3>Kalkulator Wpływu OZE</h3>
-                <p>Przesuń suwak, aby oszacować roczną redukcję $\text{CO}_2$ przy instalacji fotowoltaicznej</p>
+                <p>Przesuń suwak, aby oszacować roczną redukcję emisji CO2 przy instalacji fotowoltaicznej</p>
             </div>
 
-            <label style="font-weight: 600;">Moc instalacji PV (kWp): <span id="powerVal" style="color: var(--accent-green);">50</span> kWp</label>
+            <label style="font-weight: 700; font-size: 1.1rem;">Moc instalacji PV (kWp): <span id="powerVal" style="color: var(--accent-green); font-size: 1.3rem;">50</span> kWp</label>
             <input type="range" min="10" max="500" value="50" class="sim-slider" id="pvSlider" oninput="updateSim()">
 
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 30px; text-align: center;">
-                <div style="background: rgba(255,255,255,0.03); padding: 20px; border-radius: 16px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-top: 35px; text-align: center;">
+                <div style="background: rgba(255,255,255,0.04); padding: 28px; border-radius: 20px; border: 1px solid var(--border-color);">
                     <div class="stat-badge" id="mwhVal">50 MWh</div>
-                    <div style="color: var(--text-muted); font-size: 0.9rem;">Roczna produkcja zielonej energii</div>
+                    <div style="color: var(--text-muted); font-size: 1rem; margin-top: 8px;">Roczna produkcja zielonej energii</div>
                 </div>
-                <div style="background: rgba(255,255,255,0.03); padding: 20px; border-radius: 16px;">
+                <div style="background: rgba(255,255,255,0.04); padding: 28px; border-radius: 20px; border: 1px solid var(--border-color);">
                     <div class="stat-badge" id="co2Val">35 ton</div>
-                    <div style="color: var(--text-muted); font-size: 0.9rem;">Oszczędzona emisja $\text{CO}_2$</div>
+                    <div style="color: var(--text-muted); font-size: 1rem; margin-top: 8px;">Oszczędzona emisja CO2</div>
                 </div>
             </div>
         </div>
@@ -624,19 +624,111 @@
             navLinks.classList.toggle('active');
         });
 
-        // Quiz
-        function selectAnswer(element, isCorrect) {
-            const options = document.querySelectorAll('.quiz-option');
-            options.forEach(opt => opt.classList.remove('selected'));
-            element.classList.add('selected');
+        // BAZA PYTAŃ DO QUIZU
+        const quizData = [
+            {
+                question: "1. Co oznacza skrót ESG w biznesie?",
+                options: [
+                    "A) Energy, Sustainability, and Green",
+                    "B) Environmental, Social, and Governance",
+                    "C) Ecological Standards and Growth"
+                ],
+                correct: 1
+            },
+            {
+                question: "2. Które źródło energii jest zaliczane do OZE (Odnawialnych Źródeł Energii)?",
+                options: [
+                    "A) Gaz ziemny",
+                    "B) Węgiel kamienny",
+                    "C) Energetyka wiatrowa"
+                ],
+                correct: 2
+            },
+            {
+                question: "3. Głównym celem polityki Europejskiego Zielonego Ładu (European Green Deal) jest:",
+                options: [
+                    "A) Osiągnięcie neutralności klimatycznej UE do 2050 roku",
+                    "B) Całkowite zamknięcie sektora przemysłowego w Europie",
+                    "C) Zwiększenie importu węgla kamiennego"
+                ],
+                correct: 0
+            },
+            {
+                question: "4. Do której sekcji w SKN Energy Team powinieneś dołączyć, jeśli pasjonujesz się tworzeniem grafik, rolek i prowadzeniem Instagrama?",
+                options: [
+                    "A) Współpraca",
+                    "B) Dydaktyczno-Naukowa",
+                    "C) Social Media"
+                ],
+                correct: 2
+            }
+        ];
 
-            const resDiv = document.getElementById('quizResult');
-            if (isCorrect) {
-                resDiv.innerText = "✨ Poprawna odpowiedź! Environmental, Social, and Governance.";
-                resDiv.style.color = "var(--accent-green)";
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let answered = false;
+
+        function loadQuiz() {
+            answered = false;
+            const q = quizData[currentQuestionIndex];
+            document.getElementById('questionCounter').innerText = `Pytanie ${currentQuestionIndex + 1} z ${quizData.length}`;
+            document.getElementById('quizQuestion').innerText = q.question;
+            
+            const optionsContainer = document.getElementById('optionsContainer');
+            optionsContainer.innerHTML = '';
+            
+            q.options.forEach((opt, index) => {
+                const div = document.createElement('div');
+                div.className = 'quiz-option';
+                div.innerText = opt;
+                div.onclick = () => selectAnswer(index, div);
+                optionsContainer.appendChild(div);
+            });
+
+            document.getElementById('quizResult').innerText = '';
+            document.getElementById('nextBtn').style.display = 'none';
+        }
+
+        function selectAnswer(selectedIndex, element) {
+            if (answered) return;
+            answered = true;
+
+            const q = quizData[currentQuestionIndex];
+            const options = document.querySelectorAll('.quiz-option');
+            
+            if (selectedIndex === q.correct) {
+                element.classList.add('selected');
+                element.style.borderColor = 'var(--accent-green)';
+                element.style.background = 'rgba(0, 255, 170, 0.15)';
+                document.getElementById('quizResult').innerText = "Dobra odpowiedź!";
+                document.getElementById('quizResult').style.color = "var(--accent-green)";
+                score++;
             } else {
-                resDiv.innerText = "❌ Niepoprawna odpowiedź. Prawidłowa to B) Environmental, Social, and Governance.";
-                resDiv.style.color = "#ff4757";
+                element.style.borderColor = '#ff4757';
+                element.style.background = 'rgba(255, 71, 87, 0.15)';
+                options[q.correct].style.borderColor = 'var(--accent-green)';
+                options[q.correct].style.background = 'rgba(0, 255, 170, 0.15)';
+                document.getElementById('quizResult').innerText = "Błędne, poprawna to: " + q.options[q.correct];
+                document.getElementById('quizResult').style.color = "#ff4757";
+            }
+
+            document.getElementById('nextBtn').style.display = 'inline-block';
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < quizData.length) {
+                loadQuiz();
+            } else {
+                document.getElementById('quizContainer').innerHTML = `
+                    <div style="text-align: center; padding: 20px;">
+                        <h3 style="font-size: 1.8rem; margin-bottom: 12px;" class="gradient-text">Quiz ukończony!</h3>
+                        <p style="font-size: 1.1rem; color: var(--text-muted); margin-bottom: 24px;">Twój wynik: <strong>${score} / ${quizData.length}</strong></p>
+                        <a href="https://forms.cloud.microsoft/e/YEAW18jFCf" target="_blank" class="forms-link-btn" style="padding: 14px 32px; font-size: 1rem;">
+                            Przejdź do formularza rekrutacyjnego ↗
+                        </a>
+                    </div>
+                `;
             }
         }
 
@@ -647,6 +739,9 @@
             document.getElementById('mwhVal').innerText = (val * 1.0).toFixed(0) + " MWh";
             document.getElementById('co2Val').innerText = (val * 0.7).toFixed(0) + " ton";
         }
+
+        // Uruchomienie quizu na starcie
+        loadQuiz();
     </script>
 </body>
 </html>
