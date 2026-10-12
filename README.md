@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+
 <html lang="pl" class="dark scroll-smooth">
 <head>
     <meta charset="UTF-8">
